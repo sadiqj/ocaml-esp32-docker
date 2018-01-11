@@ -18,6 +18,9 @@ RUN cd /esp && mkdir newlib && git clone https://github.com/espressif/newlib-esp
 		--target=xtensa-esp32-elf \
 		--prefix=/esp/newlib \
 	&& CROSS_CFLAGS="-DABORT_PROVIDED -DMALLOC_PROVIDED" make all install && cp /esp/newlib/xtensa-esp32-elf/lib/libc.a /esp/esp-idf/components/newlib/lib/libc.a
-RUN opam init -a && opam switch 4.06.0 && eval `opam config env`
-RUN cd /esp && git clone https://github.com/sadiqj/ocaml-esp32.git && cd ocaml-esp32 && opam switch 4.06.0 && eval `opam config env` && ./configure -no-native-compiler -prefix /esp/ocaml-esp32 -cc /esp/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc -target xtensa-esp32-elf -target-bindir /esp/ocaml-esp32/bin -verbose -with-debug-runtime && make -C byterun libcamlrun.a
-RUN cd /esp && git clone https://github.com/sadiqj/hello_caml.git && cd hello_caml && opam switch 4.06.0 && eval `opam config env` && mkdir lib && cp ../ocaml-esp32/byterun/libcamlrun.a lib/ && make
+RUN opam init -a --compiler=4.06.0
+RUN git clone https://github.com/sadiqj/ocaml-esp32.git /esp/ocaml-esp32
+WORKDIR /esp/ocaml-esp32
+RUN opam config exec -- ./configure -no-native-compiler -prefix /esp/ocaml-esp32 -cc /esp/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc -target xtensa-esp32-elf -target-bindir /esp/ocaml-esp32/bin -verbose -with-debug-runtime 
+RUN opam config exec -- make -C byterun libcamlrun.a
+RUN git clone https://github.com/sadiqj/hello_caml.git /esp/hello && cd /esp/hello && mkdir -p lib && cp /esp/ocaml-esp32/byterun/libcamlrun.a lib/ && opam config exec -- make
